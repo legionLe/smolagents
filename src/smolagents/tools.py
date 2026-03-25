@@ -201,8 +201,8 @@ class Tool(BaseTool):
             and getattr(self, "skip_forward_signature_validation") is True
         ):
             signature = inspect.signature(self.forward)
-            actual_keys = set(key for key in signature.parameters.keys() if key != "self")
-            expected_keys = set(self.inputs.keys())
+            actual_keys = set(signature.parameters) - {"self"}
+            expected_keys = set(self.inputs)
             if actual_keys != expected_keys:
                 raise Exception(
                     f"In tool '{self.name}', 'forward' method parameters were {actual_keys}, but expected {expected_keys}. "

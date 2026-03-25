@@ -314,14 +314,14 @@ class MultiStepAgent(ABC):
         self.model = model
         self.prompt_templates = prompt_templates or EMPTY_PROMPT_TEMPLATES
         if prompt_templates is not None:
-            missing_keys = set(EMPTY_PROMPT_TEMPLATES.keys()) - set(prompt_templates.keys())
+            missing_keys = set(EMPTY_PROMPT_TEMPLATES) - set(prompt_templates)
             assert not missing_keys, (
                 f"Some prompt templates are missing from your custom `prompt_templates`: {missing_keys}"
             )
             for key, value in EMPTY_PROMPT_TEMPLATES.items():
                 if isinstance(value, dict):
-                    for subkey in value.keys():
-                        assert key in prompt_templates.keys() and (subkey in prompt_templates[key].keys()), (
+                    for subkey in value:
+                        assert key in prompt_templates and (subkey in prompt_templates[key]), (
                             f"Some prompt templates are missing from your custom `prompt_templates`: {subkey} under {key}"
                         )
 
@@ -1433,10 +1433,10 @@ class ToolCallingAgent(MultiStepAgent):
                     outputs[tool_output.id] = tool_output
                     yield tool_output
 
-        memory_step.tool_calls = [parallel_calls[k] for k in sorted(parallel_calls.keys())]
+        memory_step.tool_calls = [parallel_calls[k] for k in sorted(parallel_calls)]
         memory_step.observations = memory_step.observations or ""
-        for tool_output in [outputs[k] for k in sorted(outputs.keys())]:
-            memory_step.observations += tool_output.observation + "\n"
+        for k in sorted(outputs):
+            memory_step.observations += outputs[k].observation + "\n"
         memory_step.observations = (
             memory_step.observations.rstrip("\n") if memory_step.observations else memory_step.observations
         )

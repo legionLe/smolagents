@@ -184,7 +184,7 @@ locals().update(vars_dict)
                     return obj
                 elif isinstance(obj, dict):
                     # Check if all keys are strings (JSON-compatible)
-                    if all(isinstance(k, str) for k in obj.keys()):
+                    if all(isinstance(k, str) for k in obj):
                         return {k: _to_json_safe(v) for k, v in obj.items()}
                     else:
                         return {
