@@ -985,6 +985,7 @@ class TransformersModel(Model):
                 self.stop_strings = stop_strings
                 self.tokenizer = tokenizer
                 self.stream = ""
+                self.max_len = max((len(s) for s in stop_strings), default=0)
 
             def reset(self):
                 self.stream = ""
@@ -992,7 +993,9 @@ class TransformersModel(Model):
             def __call__(self, input_ids, scores, **kwargs):
                 generated = self.tokenizer.decode(input_ids[0][-1], skip_special_tokens=True)
                 self.stream += generated
-                if any([self.stream.endswith(stop_string) for stop_string in self.stop_strings]):
+                if len(self.stream) > self.max_len * 2:
+                    self.stream = self.stream[-self.max_len :]
+                if any(self.stream.endswith(stop_string) for stop_string in self.stop_strings):
                     return True
                 return False
 
