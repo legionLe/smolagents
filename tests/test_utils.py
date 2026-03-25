@@ -29,6 +29,7 @@ from smolagents.utils import (
     is_valid_name,
     parse_code_blobs,
     parse_json_blob,
+    sanitize_for_rich,
 )
 
 
@@ -515,6 +516,34 @@ def test_parse_json_blob_with_invalid_json(raw_json):
 def test_is_valid_name(name, expected):
     """Test the is_valid_name function with various inputs."""
     assert is_valid_name(name) is expected
+
+
+@pytest.mark.parametrize(
+    "input_val, expected_output",
+    [
+        (None, ""),
+        ("hello", "hello"),
+        (b"hello", "hello"),
+        (bytearray(b"hello"), "hello"),
+        (memoryview(b"hello"), "hello"),
+        (b"hello \xff world", "hello \ufffd world"),
+        (123, "123"),
+        (["a", "b"], "['a', 'b']"),
+        ("hello\nworld", "hello\nworld"),
+        ("hello\tworld", "hello\tworld"),
+        ("hello\rworld", "hello\rworld"),
+        ("hello\x00world", "hello\\x00world"),
+        ("hello\x1bworld", "hello\\x1bworld"),
+        ("hello\x7fworld", "hello\\x7fworld"),
+        ("hello\x08world", "hello\\x08world"),
+        ("hello\x1fworld", "hello\\x1fworld"),
+        ("[foo]", "[foo]"),
+        ("[red]hello[/red]", "[red]hello[/red]"),
+    ],
+)
+def test_sanitize_for_rich(input_val, expected_output):
+    """Test the sanitize_for_rich function with various inputs."""
+    assert sanitize_for_rich(input_val) == expected_output
 
 
 def test_agent_gradio_app_template_excludes_class_keyword():
