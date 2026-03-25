@@ -334,7 +334,7 @@ class YouTubeConverter(DocumentConverter):
                 return metadata[k]
         return default
 
-    def _findKey(self, json: Any, key: str) -> str | None:  # TODO: Fix json type
+    def _findKey(self, json: dict[str, Any] | list[Any], key: str) -> str | None:
         if isinstance(json, list):
             for elm in json:
                 ret = self._findKey(elm, key)
