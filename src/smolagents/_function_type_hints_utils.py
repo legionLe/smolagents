@@ -305,8 +305,6 @@ def _convert_type_hints_to_json_schema(func: Callable, error_on_missing_type_hin
 
         if param.default == inspect.Parameter.empty:
             required.append(param_name)
-        else:
-            properties[param_name]["nullable"] = True
 
     # Return: multi‐type union -> treat as any
     if (

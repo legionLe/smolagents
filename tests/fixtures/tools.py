@@ -99,7 +99,7 @@ def boolean_default_tool_class():
         description = "A tool with a boolean default parameter"
         inputs = {
             "text": {"type": "string", "description": "Input text"},
-            "flag": {"type": "boolean", "description": "Boolean flag with default value", "nullable": True},
+            "flag": {"type": "boolean", "description": "Boolean flag with default value"},
         }
         output_type = "string"
 

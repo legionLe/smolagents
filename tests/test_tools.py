@@ -427,25 +427,6 @@ class TestTool:
             GetWeatherTool()
         assert "Nullable" in str(e)
 
-        with pytest.raises(Exception) as e:
-
-            class GetWeatherTool2(Tool):
-                name = "get_weather"
-                description = "Get weather in the next days at given location."
-                inputs = {
-                    "location": {"type": "string", "description": "the location"},
-                    "celsius": {
-                        "type": "string",
-                        "description": "the temperature type",
-                    },
-                }
-                output_type = "string"
-
-                def forward(self, location: str, celsius: bool = False) -> str:
-                    return "The weather is UNGODLY with torrential rains and temperatures below -10°C"
-
-            GetWeatherTool2()
-        assert "Nullable" in str(e)
 
         with pytest.raises(Exception) as e:
 
@@ -468,19 +449,6 @@ class TestTool:
             GetWeatherTool3()
         assert "Nullable" in str(e)
 
-    def test_tool_default_parameters_is_nullable(self):
-        @tool
-        def get_weather(location: str, celsius: bool = False) -> str:
-            """
-            Get weather in the next days at given location.
-
-            Args:
-                location: The location to get the weather for.
-                celsius: is the temperature given in celsius?
-            """
-            return "The weather is UNGODLY with torrential rains and temperatures below -10°C"
-
-        assert get_weather.inputs["celsius"]["nullable"]
 
     def test_tool_supports_any_none(self, tmp_path):
         @tool
@@ -579,8 +547,8 @@ class TestTool:
         result = tool.to_dict()
         # Check that the boolean default annotation is preserved
         assert "flag: bool = False" in result["code"]
-        # Check nullable attribute is set for the parameter with default value
-        assert "'nullable': True" in result["code"]
+        # Check nullable attribute is not set just for default value
+        assert "'nullable': True" not in result["code"]
 
     @pytest.mark.parametrize("fixture_name", ["optional_input_tool_class", "optional_input_tool_function"])
     def test_to_dict_optional_input(self, fixture_name, request):
@@ -987,31 +955,13 @@ def test_validate_tool_arguments(tool_input_type, expected_input, expects_error)
         # - None allowed
         ("required_supported_none", str | None, ..., None, None),
         # - Missing required parameter is not allowed
-        # TODO: Fix this test case: property is marked as nullable because it can be None, but it can't be missing because it is required
-        # ("required_supported_none", str | None, ..., ..., "Argument param is required"),
-        pytest.param(
-            "required_supported_none",
-            str | None,
-            ...,
-            ...,
-            "Argument param is required",
-            marks=pytest.mark.skip(reason="TODO: Fix this test case"),
-        ),
+        ("required_supported_none", str | None, ..., ..., "Argument param is required"),
         #
         # Optional parameters (has default, doesn't support None)
         # - Valid input
         ("optional_unsupported_none", str, "default", "text", None),
         # - None not allowed
-        # TODO: Fix this test case: property is marked as nullable because it has a default value, but it can't be None
-        # ("optional_unsupported_none", str, "default", None, "Argument param has type 'null' but should be 'string'"),
-        pytest.param(
-            "optional_unsupported_none",
-            str,
-            "default",
-            None,
-            "Argument param has type 'null' but should be 'string'",
-            marks=pytest.mark.skip(reason="TODO: Fix this test case"),
-        ),
+        ("optional_unsupported_none", str, "default", None, "Argument param has type 'null' but should be 'string'"),
         # - Missing optional parameter is allowed
         ("optional_unsupported_none", str, "default", ..., None),
         #

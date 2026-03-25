@@ -286,12 +286,18 @@ tool_role_conversions = {
 
 
 def get_tool_json_schema(tool: Tool) -> dict:
+    import inspect
     properties = deepcopy(tool.inputs)
     required = []
+    sig = getattr(tool.forward, "__signature__", inspect.signature(tool.forward))
     for key, value in properties.items():
         if value["type"] == "any":
             value["type"] = "string"
-        if not ("nullable" in value and value["nullable"]):
+
+        is_required = True
+        if key in sig.parameters:
+            is_required = sig.parameters[key].default == inspect.Parameter.empty
+        if is_required:
             required.append(key)
 
         # parse anyOf
