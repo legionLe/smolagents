@@ -224,7 +224,7 @@ def agglomerate_stream_deltas(
     Agglomerate a list of stream deltas into a single stream delta.
     """
     accumulated_tool_calls: dict[int, ChatMessageToolCallStreamDelta] = {}
-    accumulated_content = ""
+    accumulated_content = []
     total_input_tokens = 0
     total_output_tokens = 0
     for stream_delta in stream_deltas:
@@ -232,7 +232,7 @@ def agglomerate_stream_deltas(
             total_input_tokens += stream_delta.token_usage.input_tokens
             total_output_tokens += stream_delta.token_usage.output_tokens
         if stream_delta.content:
-            accumulated_content += stream_delta.content
+            accumulated_content.append(stream_delta.content)
         if stream_delta.tool_calls:
             for tool_call_delta in stream_delta.tool_calls:  # ?ormally there should be only one call at a time
                 # Extend accumulated_tool_calls list to accommodate the new tool call if needed
@@ -241,7 +241,7 @@ def agglomerate_stream_deltas(
                         accumulated_tool_calls[tool_call_delta.index] = ChatMessageToolCallStreamDelta(
                             id=tool_call_delta.id,
                             type=tool_call_delta.type,
-                            function=ChatMessageToolCallFunction(name="", arguments=""),
+                            function=ChatMessageToolCallFunction(name="", arguments=[]),
                         )
                     # Update the tool call at the specific index
                     tool_call = accumulated_tool_calls[tool_call_delta.index]
@@ -253,18 +253,18 @@ def agglomerate_stream_deltas(
                         if tool_call_delta.function.name and len(tool_call_delta.function.name) > 0:
                             tool_call.function.name = tool_call_delta.function.name
                         if tool_call_delta.function.arguments:
-                            tool_call.function.arguments += tool_call_delta.function.arguments
+                            tool_call.function.arguments.append(tool_call_delta.function.arguments)
                 else:
                     raise ValueError(f"Tool call index is not provided in tool delta: {tool_call_delta}")
 
     return ChatMessage(
         role=role,
-        content=accumulated_content,
+        content="".join(accumulated_content),
         tool_calls=[
             ChatMessageToolCall(
                 function=ChatMessageToolCallFunction(
                     name=tool_call_stream_delta.function.name,
-                    arguments=tool_call_stream_delta.function.arguments,
+                    arguments="".join(tool_call_stream_delta.function.arguments),
                 ),
                 id=tool_call_stream_delta.id or "",
                 type="function",
