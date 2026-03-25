@@ -1401,9 +1401,14 @@ def validate_tool_arguments(tool: Tool, arguments: Any) -> None:
                     continue
                 raise TypeError(f"Argument {key} has type '{actual_type}' but should be '{tool.inputs[key]['type']}'")
 
+        import inspect
+        sig = getattr(tool.forward, "__signature__", inspect.signature(tool.forward))
         for key, schema in tool.inputs.items():
-            key_is_nullable = schema.get("nullable", False)
-            if key not in arguments and not key_is_nullable:
+            is_required = True
+            if key in sig.parameters:
+                is_required = sig.parameters[key].default == inspect.Parameter.empty
+
+            if key not in arguments and is_required:
                 raise ValueError(f"Argument {key} is required")
         return None
     else:
